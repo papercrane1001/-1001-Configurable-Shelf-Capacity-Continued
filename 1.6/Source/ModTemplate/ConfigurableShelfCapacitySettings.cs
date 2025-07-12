@@ -25,14 +25,32 @@ namespace LupineWitch.ConfigurableShelfCapacity
         {
             storageDefs.AddRange(foundDefs);
             foreach (var def in foundDefs)
-                SettingsDictionary.Add(def.defName, def.building.maxItemsInCell);
+            {
+                if (!SettingsDictionary.ContainsKey(def.defName))
+                    SettingsDictionary.Add(def.defName, def.building.maxItemsInCell);
+            }
         }
 
         public override void ExposeData()
         {
-            Scribe_Values.Look(ref SettingsDictionary, nameof(SettingsDictionary));
+            List<string> keys = SettingsDictionary.Keys.ToList();
+            List<int> values = SettingsDictionary.Values.ToList();
+            Scribe_Collections.Look(ref keys, "SettingsDictionary_keys", LookMode.Value);
+            Scribe_Collections.Look(ref values, "SettingsDictionary_values", LookMode.Value);
             Scribe_Values.Look(ref SplitVisualStackCount, "SplitVisualStackCount", 3);
             base.ExposeData();
+
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+            {
+                SettingsDictionary.Clear();
+                if (keys != null && values != null && keys.Count == values.Count)
+                {
+                    for (int i = 0; i < keys.Count; i++)
+                    {
+                        SettingsDictionary[keys[i]] = values[i];
+                    }
+                }
+            }
         }
 
         public static void ApplySettings()

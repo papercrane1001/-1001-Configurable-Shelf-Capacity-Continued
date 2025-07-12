@@ -38,7 +38,6 @@ namespace LupineWitch.ConfigurableShelfCapacity
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
 
@@ -50,22 +49,25 @@ namespace LupineWitch.ConfigurableShelfCapacity
 
             foreach (var entry in ConfigurableShelfCapacitySettings.StorageBuildings)
             {
-                try
+                if (!defNameCapacityBuffer.ContainsKey(entry.defName))
                 {
-                    listingStandard.Label(entry.label);
-                    string shelfBuffer = defNameCapacityBuffer[entry.defName];
-                    var settingReference = ConfigurableShelfCapacitySettings.SettingsDictionary[entry.defName];
-                    listingStandard.IntEntry(ref settingReference, ref shelfBuffer);
-                    listingStandard.End();
+                    defNameCapacityBuffer[entry.defName] = ConfigurableShelfCapacitySettings.SettingsDictionary.ContainsKey(entry.defName)
+                        ? ConfigurableShelfCapacitySettings.SettingsDictionary[entry.defName].ToString()
+                        : ConfigurableShelfCapacitySettings.MIN_SHELF_CAPACITY.ToString();
                 }
-                catch (Exception e)
+                if (!ConfigurableShelfCapacitySettings.SettingsDictionary.ContainsKey(entry.defName))
                 {
-                    Log.Error($"[{nameof(ConfigurableShelfCapacityMod)}]: Error processing shelf capacity for {entry.defName}: {e.Message}");
-                    continue;
+                    ConfigurableShelfCapacitySettings.SettingsDictionary[entry.defName] = ConfigurableShelfCapacitySettings.MIN_SHELF_CAPACITY;
                 }
-
-
+                string shelfBuffer = defNameCapacityBuffer[entry.defName];
+                int settingReference = ConfigurableShelfCapacitySettings.SettingsDictionary[entry.defName];
+                listingStandard.Label(entry.label);
+                listingStandard.IntEntry(ref settingReference, ref shelfBuffer);
+                ConfigurableShelfCapacitySettings.SettingsDictionary[entry.defName] = settingReference;
+                defNameCapacityBuffer[entry.defName] = shelfBuffer;
             }
+
+            listingStandard.End();
 
             ConfigurableShelfCapacitySettings.SplitVisualStackCount = ConfigurableShelfCapacitySettings.SplitVisualStackCount.Clamp(2, int.MaxValue);
             foreach (var valueBuffer in defNameCapacityBuffer)
@@ -73,7 +75,6 @@ namespace LupineWitch.ConfigurableShelfCapacity
                 int clampedValue = Mathf.Clamp(int.Parse(valueBuffer.Value), ConfigurableShelfCapacitySettings.MIN_SHELF_CAPACITY, ConfigurableShelfCapacitySettings.MAX_SHELF_CAPACITY);
                 ConfigurableShelfCapacitySettings.SettingsDictionary[valueBuffer.Key] = clampedValue;
             }
-
 
             base.DoSettingsWindowContents(inRect);
         }
