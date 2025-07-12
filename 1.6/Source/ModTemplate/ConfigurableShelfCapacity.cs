@@ -50,11 +50,20 @@ namespace LupineWitch.ConfigurableShelfCapacity
 
             foreach (var entry in ConfigurableShelfCapacitySettings.StorageBuildings)
             {
-                listingStandard.Label(entry.label);
-                string shelfBuffer = defNameCapacityBuffer[entry.defName];
-                var settingReference = ConfigurableShelfCapacitySettings.SettingsDictionary[entry.defName];
-                listingStandard.IntEntry(ref settingReference, ref shelfBuffer);
-                listingStandard.End();
+                try
+                {
+                    listingStandard.Label(entry.label);
+                    string shelfBuffer = defNameCapacityBuffer[entry.defName];
+                    var settingReference = ConfigurableShelfCapacitySettings.SettingsDictionary[entry.defName];
+                    listingStandard.IntEntry(ref settingReference, ref shelfBuffer);
+                    listingStandard.End();
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"[{nameof(ConfigurableShelfCapacityMod)}]: Error processing shelf capacity for {entry.defName}: {e.Message}");
+                    continue;
+                }
+
 
             }
 
